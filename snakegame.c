@@ -131,5 +131,5 @@ void Logic()
 
 int main()
 {
-printf("hello");
+printf("hello world");
 }
