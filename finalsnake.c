@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <windowsx.h>
+#include <mmsystem.h>
+#include <Windows.h>
 #include <time.h>
 
 
@@ -23,61 +26,125 @@ struct user
 
 void Print()
 {
-    printf("\tWelcome to the mini Snake game.(press any key to continue)\n");
+	system("cls");
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	
+	printf("\
+ ::::::::  ::::    :::     :::     :::    ::: ::::::::::   ::::::::      :::     ::::    ::::  ::::::::::\n\
+:+:    :+: :+:+:   :+:   :+: :+:   :+:   :+:  :+:         :+:    :+:   :+: :+:   +:+:+: :+:+:+ :+:\n\
++:+        :+:+:+  +:+  +:+   +:+  +:+  +:+   +:+         +:+         +:+   +:+  +:+ +:+:+ +:+ +:+\n\
++#++:++#++ +#+ +:+ +#+ +#++:++#++: +#++:++    +#++:++#    :#:        +#++:++#++: +#+  +:+  +#+ +#++:++#\n\
+       +#+ +#+  +#+#+# +#+     +#+ +#+  +#+   +#+         +#+   +#+# +#+     +#+ +#+       +#+ +#+\n\
+#+#    #+# #+#   #+#+# #+#     #+# #+#   #+#  #+#         #+#    #+# #+#     #+# #+#       #+# #+#\n\
+ ########  ###    #### ###     ### ###    ### ##########   ########  ###     ### ###       ### ##########\n "
+	);
+
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+
+    printf("\n\t\t\tWELCOME TO THE SNAKE GAME.(press any key to continue)\n");
+	PlaySound("gamestart.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
     getch();
-    system("cls");
-    printf("\tGame instructions:\n");
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+    printf("\t\t\t\tGAME INSTRUCTIONS:\n");
     printf("\n-> Use W A S D keys to move the snake.\n\n-> You will be provided foods at the several coordinates of the screen which you have to eat.\n\n-> Everytime you eat a food the length of the snake will be increased by 1 element and the score increases by 10.\n\n-> The game ends as you hit the wall or snake's body.\n\n-> If you want to exit press X. \n");
-    printf("\n\nPress any key to play game...");
+    printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	printf("\n\nPress any key to play game...");
+	PlaySound("beep.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
     if(getch()==27)
         exit(0);
+	PlaySound("beep.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
 }
 
 void End()
 {
-	printf("\n\n\t\t\t\t\tGAME OVER!!");
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	//printf("\n\t\t\t\t\tGAME OVER!!");
+	printf("\
+ ::::::::      :::     ::::    ::::  ::::::::::   ::::::::  :::     ::: :::::::::: :::::::::\n\  
+:+:    :+:   :+: :+:   +:+:+: :+:+:+ :+:         :+:    :+: :+:     :+: :+:        :+:    :+:\n\ 
++:+         +:+   +:+  +:+ +:+:+ +:+ +:+         +:+    +:+ +:+     +:+ +:+        +:+    +:+\n\
+:#:        +#++:++#++: +#+  +:+  +#+ +#++:++#    +#+    +:+ +#+     +:+ +#++:++#   +#++:++#:\n\  
++#+   +#+# +#+     +#+ +#+       +#+ +#+         +#+    +#+  +#+   +#+  +#+        +#+    +#+\n\ 
+#+#    #+# #+#     #+# #+#       #+# #+#         #+#    #+#   #+#+#+#   #+#        #+#    #+#\n\ 
+ ########  ###     ### ###       ### ##########   ########      ###     ########## ###    ###"
+ );
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	PlaySound("gameover.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
 
 	struct user temp1, temp2;
 	struct user U;
-	FILE * leader;
-	leader = fopen("Leaders3.bin", "rb+");
+	FILE * read, * write;
+	read = fopen("Leadersfinal2.bin", "rb");
+    write = fopen("temp.bin", "wb");
+	bool addflag = false;
 
-	if (leader == NULL)
+	if (read == NULL)
 		printf("ERROR 2!");
 
 	printf("\nTo save your score press Y, else press N: ");
 	char choice = _getch();
+
 	if (choice == 'y')
 	{
+		PlaySound("beep.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
 		printf("\n\nEnter username: ");
 		scanf("%s", U.username);
+		PlaySound("beep.wav", NULL, SND_SYNC | SND_LOOP | SND_FILENAME);
 		U.score = score;
-		//fseek(leader, 0, SEEK_SET);
-		//while (leader != EOF)
-		//{
-			fread(&temp1,sizeof(struct user), 1, leader);
-			if (temp1.score < U.score)
+		while(fread(&temp1,sizeof(struct user), 1, read))
+		{
+			if (temp1.score < U.score && addflag == false)
 			{
-				//printf("Have to write %s", U.username);
-				fseek(leader, -(sizeof(struct user)), SEEK_CUR);
-				//fseek(leader, 0, SEEK_SET);
-				fwrite(&U, sizeof(struct user), 1, leader);
+                fwrite(&U, sizeof(struct user), 1, write);
+                fwrite(&temp1, sizeof(struct user), 1, write);
+                addflag = true;
 			}
-		//}
+            else
+            {
+                fwrite(&temp1, sizeof(struct user), 1, write);
+            }
+		}
+
+		if (addflag == false)
+		{
+			fwrite(&U, sizeof(struct user), 1, write);
+		}
+	}
+	else
+	{
+		while(fread(&temp1, sizeof(struct user), 1, read))
+		{
+			fwrite(&temp1, sizeof(struct user), 1, write);
+		}
 	}
 
+	fclose(read);
+	fclose(write);
+
+    remove("Leadersfinal2.bin");
+    rename("temp.bin", "Leadersfinal2.bin");
+
+    FILE * disp;
+    disp = fopen("Leadersfinal2.bin", "rb");
 	system("cls");
-	fseek(leader, 0, SEEK_SET);
-	fread(&temp2, sizeof(struct user), 1, leader);
-	printf("\tLEADERBOARD\n\tNAME\t\tSCORE\n");
-	printf("\t%s\t\t%i\n", temp2.username, temp2.score);
-	fclose(leader);
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	printf("\n\t\t\t\t  LEADERBOARD\n");
+	printf("\n-------------------------------------------------------------------------------------------------------------\n");
+	printf("\t\t\tNAME\t\t\t\tSCORE\n");
+	printf("-------------------------------------------------------------------------------------------------------------\n");
+
+	while(fread(&temp2, sizeof(struct user), 1, disp))
+	{
+		printf("\t\t\t%s\t\t\t\t%i\n", temp2.username, temp2.score);
+	}
+
+	fclose(disp);
 }
 
 void Setup()
 {
 	FILE * fptr;
-	fptr = fopen("Leaders3.bin", "a");
+	fptr = fopen("Leadersfinal2.bin", "a");
 	if (fptr == NULL)
 		printf("ERROR 1!");
 	time_t t;
@@ -106,7 +173,7 @@ void Draw()
 			if (j == 0)
 				printf("#");
 			if (i == y && j == x)
-				printf(">");
+				printf("O");
 			else if (i == fruitY && j == fruitX)
 				printf("F");
 			else
@@ -134,6 +201,8 @@ void Draw()
 		printf("#");
 	printf("\n");
 	printf("Score: %i\n" , score);
+	printf("\nPress X to quit game\n");
+	//printf("\n-------------------------------------------------------------------------------------------------------------\n");
 }
 
 void Input()
@@ -209,6 +278,7 @@ void Logic()
 		fruitX = rand() % width;
 		fruitY = rand() % height;
 		nTail++;
+		PlaySound("beep2.wav", NULL, SND_ASYNC);
 	}
 
 }
