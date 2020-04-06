@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <time.h>
-//using namespace std;
+
+
 bool gameOver;
 const int width = 20;
 const int height = 20;
@@ -14,8 +15,71 @@ int nTail;
 enum eDirecton { STOP = 0, LEFT, RIGHT, UP, DOWN};
 enum eDirecton dir;
 
+struct user
+{
+	char username[30];
+	int score;
+};
+
+void Print()
+{
+    printf("\tWelcome to the mini Snake game.(press any key to continue)\n");
+    getch();
+    system("cls");
+    printf("\tGame instructions:\n");
+    printf("\n-> Use W A S D keys to move the snake.\n\n-> You will be provided foods at the several coordinates of the screen which you have to eat.\n\n-> Everytime you eat a food the length of the snake will be increased by 1 element and the score increases by 10.\n\n-> The game ends as you hit the wall or snake's body.\n\n-> If you want to exit press X. \n");
+    printf("\n\nPress any key to play game...");
+    if(getch()==27)
+        exit(0);
+}
+
+void End()
+{
+	printf("\n\n\t\t\t\t\tGAME OVER!!");
+
+	struct user temp1, temp2;
+	struct user U;
+	FILE * leader;
+	leader = fopen("Leaders3.bin", "rb+");
+
+	if (leader == NULL)
+		printf("ERROR 2!");
+
+	printf("\nTo save your score press Y, else press N: ");
+	char choice = _getch();
+	if (choice == 'y')
+	{
+		printf("\n\nEnter username: ");
+		scanf("%s", U.username);
+		U.score = score;
+		//fseek(leader, 0, SEEK_SET);
+		//while (leader != EOF)
+		//{
+			fread(&temp1,sizeof(struct user), 1, leader);
+			if (temp1.score < U.score)
+			{
+				//printf("Have to write %s", U.username);
+				fseek(leader, -(sizeof(struct user)), SEEK_CUR);
+				//fseek(leader, 0, SEEK_SET);
+				fwrite(&U, sizeof(struct user), 1, leader);
+			}
+		//}
+	}
+
+	system("cls");
+	fseek(leader, 0, SEEK_SET);
+	fread(&temp2, sizeof(struct user), 1, leader);
+	printf("\tLEADERBOARD\n\tNAME\t\tSCORE\n");
+	printf("\t%s\t\t%i\n", temp2.username, temp2.score);
+	fclose(leader);
+}
+
 void Setup()
 {
+	FILE * fptr;
+	fptr = fopen("Leaders3.bin", "a");
+	if (fptr == NULL)
+		printf("ERROR 1!");
 	time_t t;
 	gameOver = false;
 	dir = STOP;
@@ -25,6 +89,7 @@ void Setup()
 	fruitX = rand() % width;
 	fruitY = rand() % height;
 	score = 0;
+	fclose(fptr);
 }
 
 void Draw()
@@ -150,13 +215,16 @@ void Logic()
 
 int main()
 {
+	Print();
 	Setup();
-		while (!gameOver)
-		{
-			Draw();
-			Input();
-			Logic();
-		}
+	while (!gameOver)
+	{
+		Draw();
+		Input();
+		Logic();
+	}
+	End();
+	
 	return 0;
 }
 
